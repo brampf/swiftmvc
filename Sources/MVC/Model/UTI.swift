@@ -24,3 +24,34 @@ extension UTI {
     public static let PLAINTEXT : UTI = kUTTypePlainText as String
     
 }
+
+import SwiftUI
+
+extension Image {
+    
+    public init(uti: UTI){
+        
+        if UTTypeConformsTo(uti as CFString, UTI.FOLDER as CFString) {
+            self.init(systemName: "folder")
+        } else if UTTypeConformsTo(uti as CFString, UTI.PACKAGE as CFString) {
+            self.init(systemName: "cube.box")
+        } else if UTTypeConformsTo(uti as CFString, UTI.IMAGE as CFString) {
+            self.init(systemName: "photo")
+        } else if UTTypeConformsTo(uti as CFString, UTI.HTML as CFString) {
+            self.init(systemName: "doc.append")
+        } else if UTTypeConformsTo(uti as CFString, UTI.RICHTEXT as CFString) {
+            self.init(systemName: "doc.richtext")
+        } else if UTTypeConformsTo(uti as CFString, UTI.PLAINTEXT as CFString) {
+            self.init(systemName: "doc.plaintext")
+        } else if UTTypeConformsTo(uti as CFString, UTI.TEXT as CFString) {
+            self.init(systemName: "doc.text")
+        } else if UTTypeConformsTo(uti as CFString, UTI.AUDIO as CFString) {
+            self.init(systemName: "speaker")
+        } else if UTTypeConformsTo(uti as CFString, UTI.MOVIE as CFString) {
+            self.init(systemName: "film")
+        } else {
+            self.init(systemName: "doc")
+        }
+    }
+    
+}

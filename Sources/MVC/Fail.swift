@@ -45,3 +45,9 @@ extension Fail : CustomStringConvertible, CustomDebugStringConvertible {
     }
     
 }
+
+enum Fails : LocalizedError {
+    
+    case insufficentPermissions(String)
+    
+}

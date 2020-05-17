@@ -5,41 +5,39 @@
 //  Created by May on 06.04.20.
 //  Copyright © 2020 Mayworld. All rights reserved.
 //
-
+import UIKit
 import Foundation
 
-open class AppController {
+open class AppController : Controller {
     
-    /// Publisher for the last error
-    @Published public final var fail : Fail?
+    @Published public final var debugMode : Bool = false {
+        willSet{
+            super.objectWillChange.send()
+        }
+    }
     
-    @Published public final var debugMode : Bool = false
-    
-    public init(){
+    public func newWindow(activity: String) {
+        // 3
+        let userActivity = NSUserActivity(
+            activityType: activity
+        )
+        // 4
+        UIApplication
+            .shared
+            .requestSceneSessionActivation(
+                nil,
+                userActivity: userActivity,
+                options: nil,
+                errorHandler: nil)
         
     }
     
-    public func publishFail(_ message: String? = nil, error: Error) {
-        DispatchQueue.main.async{
-            self.fail = Fail(error, message: message)
-        }
-    }
-    
-    public func publishFail(_ fail: Fail){
-        DispatchQueue.main.async {
-            self.fail = fail
-        }
-    }
-    
-    public func publishFail(_ error: Error){
-        DispatchQueue.main.async {
-            self.fail = Fail(error)
-        }
-    }
-    
-    public func publishFail(_ message: String){
-        DispatchQueue.main.async {
-            self.fail = Fail(nil, message: message)
+    public func closeActiveWindow() {
+        
+        if let session = UIApplication.shared.connectedScenes.first(where: {$0.activationState == .foregroundActive})?.session {
+            let options = UIWindowSceneDestructionRequestOptions()
+            options.windowDismissalAnimation = .commit
+            UIApplication.shared.requestSceneSessionDestruction(session, options: options, errorHandler: nil)
         }
     }
 }

@@ -18,8 +18,10 @@ public struct Trackable<H : Hashable> : ViewModifier {
     public func body(content: Content) -> some View {
         content.onAppear {
             self.visible.insert(self.id)
-        }.onDisappear{
             self.invisible.remove(self.id)
+        }.onDisappear{
+            self.visible.remove(self.id)
+            self.invisible.insert(self.id)
         }
     }
     
