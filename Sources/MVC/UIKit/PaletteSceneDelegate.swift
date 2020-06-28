@@ -8,7 +8,7 @@ import UIKit
 import SwiftUI
 import Foundation
 
-public class PaletteSceneDelegate<Controller: PanelController>: UIResponder, UIWindowSceneDelegate {
+public class PaletteSceneDelegate<Controller: PanelController & ObservableObject, MainController: AppController & ObservableObject, PaletteView: RootView>: UIResponder, UIWindowSceneDelegate {
     
     public var window: UIWindow?
     public var controller : Controller?
@@ -20,13 +20,13 @@ public class PaletteSceneDelegate<Controller: PanelController>: UIResponder, UIW
         
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
-        guard let appConfig = UIApplication.shared.delegate as? AppConfiguration else {return}
+        guard let appConfig = UIApplication.shared.delegate as? ApplicationDelegate<MainController> else {return}
         
         let controller = Controller.init()
         controller.dismiss = {
             let options = UIWindowSceneDestructionRequestOptions()
             options.windowDismissalAnimation = .commit
-            UIApplication.shared.requestSceneSessionDestruction(session, options: options, errorHandler: appConfig.appController.publishFail)
+            UIApplication.shared.requestSceneSessionDestruction(session, options: options, errorHandler: appConfig.controller.publishFail)
         }
         
         #if targetEnvironment(macCatalyst)
@@ -41,8 +41,8 @@ public class PaletteSceneDelegate<Controller: PanelController>: UIResponder, UIW
         #endif
         
         // Create the SwiftUI view that provides the window contents.
-        let contentView = controller.root
-            .environmentObject(appConfig.appController)
+        let contentView = PaletteView.init()
+            .environmentObject(appConfig.controller)
             .environmentObject(controller)
         
         self.controller = controller

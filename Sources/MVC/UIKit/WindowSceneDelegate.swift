@@ -8,7 +8,7 @@ import UIKit
 import SwiftUI
 import Foundation
 
-public class WindowSceneDelegate<Controller: WindowController>: UIResponder, UIWindowSceneDelegate {
+public class WindowSceneDelegate<Controller: WindowController & ObservableObject, MainController: AppController & ObservableObject, WindowView: RootView>: UIResponder, UIWindowSceneDelegate {
     
     public var window: UIWindow?
     public var controller : Controller?
@@ -20,32 +20,40 @@ public class WindowSceneDelegate<Controller: WindowController>: UIResponder, UIW
         
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
-        guard let appConfig = UIApplication.shared.delegate as? AppConfiguration else {return}
+        guard let appConfig = UIApplication.shared.delegate as? ApplicationDelegate<MainController> else {return}
+        
         
         let controller = Controller.init()
         controller.dismiss = {
             let options = UIWindowSceneDestructionRequestOptions()
             options.windowDismissalAnimation = .commit
-            UIApplication.shared.requestSceneSessionDestruction(session, options: options, errorHandler: appConfig.appController.publishFail)
+            UIApplication.shared.requestSceneSessionDestruction(session, options: options, errorHandler: appConfig.controller.publishFail)
         }
         
         #if targetEnvironment(macCatalyst)
         if let titlebar = windowScene.titlebar {
-            titlebar.titleVisibility = .visible
+            titlebar.titleVisibility = .hidden
             titlebar.toolbar = .none
             titlebar.toolbar?.isVisible = false
-            titlebar.toolbar?.showsBaselineSeparator = false
+            titlebar.toolbar?.showsBaselineSeparator = true
             titlebar.autoHidesToolbarInFullScreen = true
+            
             controller.titleHandler = { url in
                 titlebar.representedURL = url
+                
+                DispatchQueue.main.async {
+                    if let control = appConfig.controller as? AppController {
+                        control.recentDocuments.append(RecentDocument(url: url, date: Date()))
+                    }
+                }
             }
 
         }
         #endif
         
         // Create the SwiftUI view that provides the window contents.
-        let contentView = AppView(body: controller.root)
-            .environmentObject(appConfig.appController)
+        let contentView = WindowView.init()
+            .environmentObject(appConfig.controller)
             .environmentObject(controller)
         
         self.controller = controller
@@ -54,20 +62,26 @@ public class WindowSceneDelegate<Controller: WindowController>: UIResponder, UIW
         if let windowScene = scene as? UIWindowScene {
             
             let window = UIWindow(windowScene: windowScene)
+            self.controller?.restorationID = window.restorationIdentifier
+            self.controller?.resotre()
             window.rootViewController = UIHostingController(rootView: contentView)
+            
+            controller.window = {
+                return window
+            }
             
             self.window = window
             window.makeKeyAndVisible()
         }
+        
+        self.scene(scene, openURLContexts: connectionOptions.urlContexts)
     }
     
     public func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         
         if let context = URLContexts.first {
             self.controller?.open(url: context.url)
-        } else {
-            self.controller?.fail = Fail(message: "openInPlace")
-        }
+        } 
         
     }
     
@@ -76,7 +90,8 @@ public class WindowSceneDelegate<Controller: WindowController>: UIResponder, UIW
         // This occurs shortly after the scene enters the background, or when its session is discarded.
         // Release any resources associated with this scene that can be re-created the next time the scene connects.
         // The scene may re-connect later, as its session was not neccessarily discarded (see `application:didDiscardSceneSessions` instead).
-        self.controller?.save()
+
+        
         scene.delegate = nil
     }
     
@@ -93,48 +108,35 @@ public class WindowSceneDelegate<Controller: WindowController>: UIResponder, UIW
     public func sceneWillEnterForeground(_ scene: UIScene) {
         // Called as the scene transitions from the background to the foreground.
         // Use this method to undo the changes made on entering the background.
+        
+        if let appDelegate =  UIApplication.shared.delegate as? ApplicationDelegate<MainController> {
+            appDelegate.controller.restore()
+        }
+        
+        self.controller?.resotre()
     }
     
     public func sceneDidEnterBackground(_ scene: UIScene) {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
+        
+        self.controller?.persist()
+        
+        if let appDelegate =  UIApplication.shared.delegate as? ApplicationDelegate<MainController> {
+            appDelegate.controller.persist()
+        }
     }
     
+    public override func validate(_ command: UICommand) {
+        //
+    }
     
     public override func buildMenu(with builder: UIMenuBuilder) {
-        //1
-        guard builder.system == .main else { return }
         
-        //2
-        builder.remove(menu: .format)
-        builder.remove(menu: .learn)
-        builder.remove(menu: .edit)
-        
-        let selector = #selector(self.close)
-        let close = UIKeyCommand(
-            title: "Close",
-            image: nil,
-            action: selector,
-            input: "k",
-            modifierFlags: [.command],
-            propertyList: nil)
-        
-        //4
-        let menu = UIMenu(
-            title: "",
-            image: nil,
-            identifier: UIMenu.Identifier("Close"),
-            options: .displayInline,
-            children: [close])
-        
-        //5
-        builder.insertChild(menu, atEndOfMenu: .edit)
-    }
-    
-    @objc
-    func close() {
-        self.controller?.dismiss?()
+        if let menuControl = controller as? MenuController{
+            menuControl.buildMenu(with: builder)
+        }
     }
 }
 

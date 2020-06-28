@@ -10,7 +10,13 @@ import Foundation
 
 open class WindowController : Controller {
     
+    @Published public var note : NotificationView?
+    
+    public internal(set) var restorationID : String?
+    
     var titleHandler : ((URL) -> Void)?
+    
+    public var window : (() -> UIWindow)?
     
     public var dismiss : (() -> Void)?
     
@@ -19,14 +25,31 @@ open class WindowController : Controller {
     }
     
     open func open(url: URL){
+
+        if let restoreID = restorationID, let data = try? url.bookmarkData() {
+            
+            UserDefaults.standard.set(data, forKey: restoreID)
+        }
+        
         DispatchQueue.main.async{
+            super.fail = nil
             self.titleHandler?(url)
             
         }
     }
     
-    open var root : AnyView {
-        return AnyView(EmptyView())
+    internal func persist(){
+        
+        
+        self.save()
     }
     
+    internal func resotre() {
+        
+        var stale = false
+        if let restoreID = restorationID, let data = UserDefaults.standard.data(forKey: restoreID), let url = try? URL(resolvingBookmarkData: data, bookmarkDataIsStale: &stale) {
+            self.open(url: url)
+        }
+        
+    }
 }

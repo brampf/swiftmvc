@@ -10,26 +10,26 @@ import CoreServices
 
 public typealias UTI = String
 
-extension UTI {
+public extension UTI {
     
-    public static let IMAGE : UTI = "public.image"
-    public static let FOLDER : UTI = "public.folder"
-    public static let HTML : UTI = "public.html"
-    public static let TEXT : UTI = "public.text"
-    public static let MOVIE : UTI = "public.movie"
-    public static let AUDIO : UTI = "public.audio"
-    public static let DATA : UTI = "public.data"
-    public static let PACKAGE : UTI = "public.package"
-    public static let RICHTEXT : UTI = kUTTypeRTF as String
-    public static let PLAINTEXT : UTI = kUTTypePlainText as String
+    static let IMAGE : UTI = "public.image"
+    static let FOLDER : UTI = "public.folder"
+    static let HTML : UTI = "public.html"
+    static let TEXT : UTI = "public.text"
+    static let MOVIE : UTI = "public.movie"
+    static let AUDIO : UTI = "public.audio"
+    static let DATA : UTI = "public.data"
+    static let PACKAGE : UTI = "public.package"
+    static let RICHTEXT : UTI = kUTTypeRTF as String
+    static let PLAINTEXT : UTI = kUTTypePlainText as String
     
 }
 
 import SwiftUI
 
-extension Image {
+public extension Image {
     
-    public init(uti: UTI){
+    init(uti: UTI){
         
         if UTTypeConformsTo(uti as CFString, UTI.FOLDER as CFString) {
             self.init(systemName: "folder")

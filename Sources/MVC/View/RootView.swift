@@ -6,3 +6,8 @@
 //
 import SwiftUI
 import Foundation
+
+public protocol RootView : View {
+    
+    init()
+}
