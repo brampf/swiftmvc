@@ -24,7 +24,7 @@ public struct FailSummary : View {
                 #endif
                 VStack(alignment: .leading){
                     Text("ERROR: \(self.fail?.message ?? "")").lineLimit(1)
-                    Text(self.fail?.error.debugDescription ?? "").font(.system(.body, design: .monospaced)).lineLimit(1)
+                    Text(self.fail!.error.debugDescription).font(.system(.body, design: .monospaced)).lineLimit(5)
                 }.padding()
                 Spacer()
                 #if os(macOS)

@@ -4,7 +4,7 @@
 //
 //  Created by May on 14.05.20.
 //
-
+import FileIO
 import Foundation
 
 protocol ResultType{

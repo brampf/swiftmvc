@@ -26,7 +26,7 @@ public struct DropArea : View {
             .padding()
             .droppable(utis: handler)
             .onTapGesture {
-                DocumentPickerViewController(supportedTypes: [self.handler.uti], onPick: self.handler.onResult).show()
+                DocumentPickerViewController(true, self.handler).show()
         }
     }
     

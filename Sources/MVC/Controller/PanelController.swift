@@ -11,9 +11,4 @@ open class PanelController : Controller {
     
     public var dismiss : (() -> Void)?
     
-    open var root : AnyView {
-        return AnyView(EmptyView())
-    }
-    
-    
 }

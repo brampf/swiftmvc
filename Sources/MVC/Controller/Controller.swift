@@ -8,7 +8,7 @@
 import Foundation
 
 
-open class Controller : ObservableObject {
+open class Controller {
     
     /// Publisher for the last error
     @Published public final var fail : Fail?

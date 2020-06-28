@@ -10,35 +10,43 @@ import Foundation
 
 open class AppController : Controller {
     
-    @Published public final var debugMode : Bool = false {
-        willSet{
-            super.objectWillChange.send()
-        }
+    @Published public final var debugMode : Bool = false
+
+    @Published public internal(set) final var recentDocuments : [RecentDocument] = []
+
+    open func save() {
+        // your code here
     }
     
-    public func newWindow(activity: String) {
-        // 3
-        let userActivity = NSUserActivity(
-            activityType: activity
-        )
-        // 4
-        UIApplication
-            .shared
-            .requestSceneSessionActivation(
-                nil,
-                userActivity: userActivity,
-                options: nil,
-                errorHandler: nil)
+    internal func persist(){
         
+        if let encoded = try? JSONEncoder().encode(recentDocuments) {
+            UserDefaults.standard.set(encoded, forKey: "@@recent@@documents@@")
+        }
+        
+        self.save()
     }
     
-    public func closeActiveWindow() {
+    internal func restore(){
         
-        if let session = UIApplication.shared.connectedScenes.first(where: {$0.activationState == .foregroundActive})?.session {
-            let options = UIWindowSceneDestructionRequestOptions()
-            options.windowDismissalAnimation = .commit
-            UIApplication.shared.requestSceneSessionDestruction(session, options: options, errorHandler: nil)
+        if let json = UserDefaults.standard.object(forKey: "@@recent@@documents@@") as? Data {
+            if let docs = try? JSONDecoder().decode([RecentDocument].self, from: json) {
+                self.recentDocuments = docs
+            }
         }
+    }
+
+    
+    internal func addRecentURL(_ url: URL){
+        
+        if var recent = self.recentDocuments.first(where: {$0.url == url}){
+            recent.date = Date()
+        } else {
+            recentDocuments.append(RecentDocument(url: url, date: Date()))
+            if recentDocuments.count > 10 {
+                recentDocuments.removeFirst()
+            }
+        }
+        
     }
 }
-
